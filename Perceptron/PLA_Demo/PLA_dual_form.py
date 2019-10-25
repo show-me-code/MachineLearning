@@ -24,11 +24,11 @@ def PLA(X, y, learning_rate = 0.1):
         # 3.如果错误分类，将“存在错误”标记置为True，同时利用w←w+η*y[i]*x[i]，b←b+η*y[i]修正，此处将两个式子合为一个表达式，直到该样本点正确分类
         # 4.修正完毕后返回步骤1
         for i in range(0, n):
-            while sgn(y[i]*(np.sum(alphas[j]*y[j]*gramMatrix[j][i] for j in range(0, n))+alphas[-1])) == -1:
+            while sgn(y[i]*(np.multiply(alphas[0: -1], gramMatrix[i]).dot(y) + alphas[-1])) == -1:
                 miss_exist = True
                 alphas[i] = alphas[i] + learning_rate
                 alphas[-1] = alphas[-1] + learning_rate*y[i]
-                weights = np.append(np.sum(alphas[i]*y[i]*X[i] for i in range(0, n)),alphas[-1])
+                weights = np.append(sum(alphas[i]*y[i]*X[i] for i in range(0, n)),alphas[-1])
                 weights_record.append(weights.copy())
                 steps += 1
                 print('第'+str(steps)+'次修正，w=：'+str(weights[0:-1])+'，b='+str(weights[-1]))
@@ -51,31 +51,6 @@ def calc_Gram(X, n):
 def sgn(num):
     return 1 if num>0 else -1
 
-# 调试数据
-# X = np.array([[1, 3], [2, -1], [2, 0], [0.2, 1], [3, 1.5]])
-# y = np.array([1, -1, 1, 1, -1])
-
-
-# 测试数据为100个样本点，其中前五十个为均值为[3, 3]的正态分布样本点，标记为-1，后五十个为均值为[7, 7]的正态分布样本点，标记为1，协方差为[[1,0],[0,1]]，数据集极大概率线性可分
-mean1=[3,3]
-cov1=[[1,0],[0,1]]
-mean2=[7,7]
-cov2=[[1,0],[0,1]]
-X1=np.random.multivariate_normal(mean1,cov1,50)
-X2=np.random.multivariate_normal(mean2,cov2,50)
-X = np.row_stack((X1,X2))
-y = np.ones(100)
-y[0:50] = -1
-# 绘制样本集
-fig, ax = plt.subplots()
-plt.scatter(X1[:,0],X1[:,1])
-plt.scatter(X2[:,0],X2[:,1])
-
-#PLA算法求系数
-weights, weights_record = PLA(X, y, 1)
-x_range = np.arange(0,10,0.01)
-
-line, = ax.plot([], [], color='red', animated=False)
 
 # 动画初始化
 def init():
@@ -96,6 +71,34 @@ def animate(i):
         line.set_data(-weights[2]/weights[0],np.arange(0,10,0.01))
     return [line]+[title]
 
-ani = animation.FuncAnimation(fig, animate, init_func=init, interval=10, blit=True)
-line, = ax.plot(x_range, (-weights[0]*x_range-weights[2])/weights[1])
-plt.show()
+
+
+if __name__ == '__main__':
+    # 调试数据
+    # X = np.array([[1, 3], [2, -1], [2, 0], [0.2, 1], [3, 1.5]])
+    # y = np.array([1, -1, 1, 1, -1])
+
+
+    # 测试数据为100个样本点，其中前五十个为均值为[3, 3]的正态分布样本点，标记为-1，后五十个为均值为[7, 7]的正态分布样本点，标记为1，协方差为[[1,0],[0,1]]，数据集极大概率线性可分
+    mean1=[3,3]
+    cov1=[[1,0],[0,1]]
+    mean2=[7,7]
+    cov2=[[1,0],[0,1]]
+    X1=np.random.multivariate_normal(mean1,cov1,50)
+    X2=np.random.multivariate_normal(mean2,cov2,50)
+    X = np.row_stack((X1,X2))
+    y = np.ones(100)
+    y[0:50] = -1
+    # 绘制样本集
+    fig, ax = plt.subplots()
+    plt.scatter(X1[:,0],X1[:,1])
+    plt.scatter(X2[:,0],X2[:,1])
+
+    # PLA算法求系数
+    weights, weights_record = PLA(X, y, 1)
+    x_range = np.arange(0,10,0.01)
+
+    line, = ax.plot([], [], color='red', animated=False)
+    ani = animation.FuncAnimation(fig, animate, init_func=init, interval=10, blit=True)
+    line, = ax.plot(x_range, (-weights[0]*x_range-weights[2])/weights[1])
+    plt.show()

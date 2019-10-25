@@ -14,7 +14,6 @@ def PLA(X, y, learning_rate = 0.1, max_step = 1000):
     pocket_weights = weights.copy()
     pocket_accurate_rate = 0
     steps = 0
-    step1 = 0
     # 算法主体
     while True:
         # 标记这一轮循环是否存在错误分类的样本点
@@ -34,9 +33,7 @@ def PLA(X, y, learning_rate = 0.1, max_step = 1000):
                 if current_accurate_rate >= pocket_accurate_rate:
                     pocket_accurate_rate = current_accurate_rate
                     pocket_weights = weights
-                    step1 = steps
                 if steps == max_step:
-                    print(step1)
                     return pocket_weights, weights_record, pocket_accurate_rate
             if miss_exist:
                 continue
@@ -49,6 +46,7 @@ def PLA(X, y, learning_rate = 0.1, max_step = 1000):
 def sgn(num):
     return 1 if num>0 else -1
 
+# 计算当前分类的精确度
 def get_accurate_rate(X, y, weights):
     mistakes = 0.0
     n,m = X.shape
@@ -58,33 +56,7 @@ def get_accurate_rate(X, y, weights):
     return (n-mistakes)/n
 
 
-# 调试数据
-# X = np.array([[1, 3], [2, -1], [2, 0], [0.2, 1], [3, 1.5]])
-# y = np.array([1, -1, 1, 1, -1])
 
-
-# 测试数据为100个样本点，其中前五十个为均值为[3.5, 3.5]的正态分布样本点，标记为-1，后五十个为均值为[6, 6]的正态分布样本点，标记为1，协方差为[[1,0],[0,1]]，数据集极大概率线性不可分
-mean1=[3.5,3.5]
-cov1=[[1,0],[0,1]]
-mean2=[6,6]
-cov2=[[1,0],[0,1]]
-X1=np.random.multivariate_normal(mean1,cov1,50)
-X2=np.random.multivariate_normal(mean2,cov2,50)
-X = np.row_stack((X1,X2))
-y = np.ones(100)
-y[0:50] = -1
-# 绘制样本集
-fig, ax = plt.subplots()
-plt.scatter(X1[:,0],X1[:,1])
-plt.scatter(X2[:,0],X2[:,1])
-
-#PLA算法求系数
-max_steps = 1000
-weights, weights_record, pocket_accurate_rate = PLA(X, y, 1, max_steps)
-print('最终结果，w=：'+str(weights[0:-1])+'，b='+str(weights[-1])+'，正确率：'+str(pocket_accurate_rate))
-x_range = np.arange(0,10,0.01)
-
-line, = ax.plot([], [], color='red', animated=False)
 
 # 动画初始化
 def init():
@@ -110,6 +82,34 @@ def animate(i):
         line.set_data(-w[2]/w[0],np.arange(-5,5,0.01))  # update the data.
     return [line]+[title]
 
-ani = animation.FuncAnimation(fig, animate, init_func=init, interval=10, blit=True)
-line, = ax.plot(x_range, (-weights[0]*x_range-weights[2])/weights[1])
-plt.show()
+if __name__ == '__main__':
+    # 调试数据
+    # X = np.array([[1, 3], [2, -1], [2, 0], [0.2, 1], [3, 1.5]])
+    # y = np.array([1, -1, 1, 1, -1])
+
+
+    # 测试数据为100个样本点，其中前五十个为均值为[3.5, 3.5]的正态分布样本点，标记为-1，后五十个为均值为[6, 6]的正态分布样本点，标记为1，协方差为[[1,0],[0,1]]，数据集极大概率线性不可分
+    mean1=[3.5,3.5]
+    cov1=[[1,0],[0,1]]
+    mean2=[6,6]
+    cov2=[[1,0],[0,1]]
+    X1=np.random.multivariate_normal(mean1,cov1,50)
+    X2=np.random.multivariate_normal(mean2,cov2,50)
+    X = np.row_stack((X1,X2))
+    y = np.ones(100)
+    y[0:50] = -1
+    # 绘制样本集
+    fig, ax = plt.subplots()
+    plt.scatter(X1[:,0],X1[:,1])
+    plt.scatter(X2[:,0],X2[:,1])
+
+    # PLA算法求系数
+    max_steps = 1000
+    weights, weights_record, pocket_accurate_rate = PLA(X, y, 1, max_steps)
+    print('最终结果，w=：'+str(weights[0:-1])+'，b='+str(weights[-1])+'，正确率：'+str(pocket_accurate_rate))
+    x_range = np.arange(0,10,0.01)
+
+    line, = ax.plot([], [], color='red', animated=False)
+    ani = animation.FuncAnimation(fig, animate, init_func=init, interval=10, blit=True)
+    line, = ax.plot(x_range, (-weights[0]*x_range-weights[2])/weights[1])
+    plt.show()
